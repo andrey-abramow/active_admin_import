@@ -51,7 +51,13 @@ module ActiveAdminImport
 
     def cycle(lines)
       @csv_lines = CSV.parse(lines.join, @csv_options)
+
+      unless options[:value_handlers].blank?
+        handle_lines
+      end
+
       @result.merge!(self.store) { |key, val1, val2| val1+val2 }
+
     end
 
     def import
@@ -74,5 +80,22 @@ module ActiveAdminImport
       options[:after_import].call(self) if options[:after_import].is_a?(Proc)
       result
     end
+
+    def handle_lines
+      @csv_lines.each_with_index  do |line, i|
+         @csv_lines[i] = handle_line(line, i)
+      end
+    end
+
+    def handle_line(line, i)
+      line.each_with_index do |value, i|
+        handler = options[:value_handlers][headers.values[i]]
+        next unless handler
+        handled_value = handler.call(value)
+        line[i] = handled_value
+      end
+
+    end
+
   end
 end

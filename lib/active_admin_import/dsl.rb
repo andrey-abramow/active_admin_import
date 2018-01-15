@@ -49,10 +49,11 @@ module ActiveAdminImport
       end
 
       collection_action :do_import, method: :post do
+
         authorize!(ActiveAdminImport::Auth::IMPORT, active_admin_config.resource_class)
 
         @active_admin_import_model = options[:template_object] || ActiveAdminImport::Model.new
-        @active_admin_import_model.assign_attributes(params[params_key].try(:deep_symbolize_keys) || {})
+        @active_admin_import_model.assign_attributes(params[params_key].deep_symbolize_keys || {})
         #go back to form
         return render template: options[:template] unless @active_admin_import_model.valid?
         @importer = Importer.new(options[:resource_class], @active_admin_import_model, options)
